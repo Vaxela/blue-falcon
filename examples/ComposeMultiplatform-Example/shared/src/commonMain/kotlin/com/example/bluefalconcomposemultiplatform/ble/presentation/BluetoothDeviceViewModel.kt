@@ -70,6 +70,23 @@ class BluetoothDeviceViewModel(
         when(event) {
             UiEvent.OnScanClick -> {
                 blueFalcon.scan()
+                _deviceState.update { it.copy(isScanning = true) }
+            }
+
+            UiEvent.OnStopScanClick -> {
+                blueFalcon.stopScanning()
+                _deviceState.update { it.copy(isScanning = false) }
+            }
+
+            UiEvent.OnClearDevices -> {
+                blueFalcon.stopScanning()
+                blueFalcon.clearPeripherals()
+                _deviceState.update {
+                    it.copy(
+                        devices = HashMap(),
+                        isScanning = false
+                    )
+                }
             }
 
             is UiEvent.OnConnectClick -> {

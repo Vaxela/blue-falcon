@@ -1,7 +1,9 @@
 package com.example.bluefalconcomposemultiplatform.ble.presentation.component
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -23,15 +25,34 @@ fun DeviceScanView(
     state: BluetoothDeviceState,
     onEvent: (UiEvent) -> Unit
 ) {
-    Button(
-        onClick = {
-            onEvent(UiEvent.OnScanClick)
-        },
+    Row(
         modifier = Modifier
-            .width(140.dp)
-            .padding(start = 20.dp, top = 20.dp)
+            .fillMaxWidth()
+            .padding(start = 20.dp, top = 20.dp, end = 20.dp),
+        horizontalArrangement = Arrangement.spacedBy(10.dp)
     ) {
-        Text("Scan")
+        Button(
+            onClick = {
+                if (state.isScanning) {
+                    onEvent(UiEvent.OnStopScanClick)
+                } else {
+                    onEvent(UiEvent.OnScanClick)
+                }
+            },
+            modifier = Modifier.width(140.dp)
+        ) {
+            Text(if (state.isScanning) "Stop" else "Scan")
+        }
+
+        Button(
+            onClick = {
+                onEvent(UiEvent.OnClearDevices)
+            },
+            modifier = Modifier.width(140.dp),
+            enabled = state.devices.isNotEmpty()
+        ) {
+            Text("Clear")
+        }
     }
     Column(
         modifier = Modifier
