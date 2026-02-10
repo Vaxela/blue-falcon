@@ -4,8 +4,7 @@ import org.jetbrains.kotlin.gradle.plugin.mpp.apple.XCFramework
 plugins {
     kotlin("multiplatform") version "2.3.0"
     id("com.android.library")
-    id("com.vanniktech.maven.publish") version "0.34.0"
-    id("signing")
+    id("maven-publish")
 }
 
 repositories {
@@ -21,14 +20,6 @@ val localProperties: File = rootProject.file("local.properties")
 if (localProperties.exists()) {
     localProperties.inputStream().use { local.load(it) }
 }
-val projectGithubUrl: String by project
-val projectGithubSCM: String by project
-val projectGithubSCMSSL: String by project
-val projectDescription: String by project
-
-val developerId: String by project
-val developerName: String by project
-val developerEmail: String by project
 val group: String by project
 val libraryName: String by project
 val version: String by project
@@ -105,59 +96,31 @@ kotlin {
     }
 }
 
-mavenPublishing {
-    publishToMavenCentral(automaticRelease = true)
-    signAllPublications()
+val gitlabProjectId: String =
+    local.getProperty("gitlabProjectId")
+        ?: System.getenv("CI_PROJECT_ID")
+        ?: "PROJECT_ID"
 
-    coordinates(
-        groupId = group,
-        artifactId = libraryName,
-        version = version
-    )
-
-    pom {
-        name.set(group)
-        description.set(projectDescription)
-        url.set(projectGithubUrl)
-
-        licenses {
-            license {
-                name.set("MIT License")
-                url.set("http://opensource.org/licenses/MIT")
-            }
-        }
-
-        developers {
-            developer {
-                id.set(developerId)
-                name.set(developerName)
-                email.set(developerEmail)
-            }
-        }
-
-        scm {
-            url.set(projectGithubUrl)
-            connection.set(projectGithubSCM)
-            developerConnection.set(projectGithubSCMSSL)
-        }
-    }
-}
-
-val javadocJar by tasks.creating(Jar::class) {
-    archiveClassifier.value("javadoc")
-}
-
-signing {
-    setRequired {
-        !gradle.taskGraph.allTasks.any { it is PublishToMavenLocal }
-    }
-    val key = local.getProperty("signingKey") ?: System.getenv("SIGNING_KEY")
-    val password = local.getProperty("signingPassword") ?: System.getenv("SIGNING_PASSWORD")
-    if (key != null && password != null) {
-        useInMemoryPgpKeys(key, password)
-        sign(publishing.publications) // This ensures all created publications are signed
+val gitlabDeployUser: String? =
+    if (System.getenv("CI") != null) {
+        "gitlab-ci-token"
     } else {
-        // Optional: Log a warning if keys are missing for a release build
-        logger.warn("Signing key or password not found. Publication will not be signed.")
+        local.getProperty("gitlabDeployUsername")
+    }
+
+val gitlabDeployPass: String? =
+    System.getenv("CI_JOB_TOKEN")
+        ?: local.getProperty("gitlabDeployPassword")
+
+publishing {
+    repositories {
+        maven {
+            name = "GitLab"
+            url = uri("https://gitlab.com/api/v4/projects/$gitlabProjectId/packages/maven")
+            credentials {
+                username = gitlabDeployUser
+                password = gitlabDeployPass
+            }
+        }
     }
 }
