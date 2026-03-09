@@ -19,43 +19,52 @@ class BleDelegate: BlueFalconDelegate {
         bluetoothPeripheral: BluetoothPeripheral,
         bluetoothCharacteristic: BluetoothCharacteristic
     ) {
-        bluetoothCharacteristic.value?.let { bytes ->
-
-        }
+        onDeviceEvent?.invoke(
+            DeviceEvent.OnCharacteristicValueChanged(
+                bluetoothPeripheral.uuid,
+                bluetoothCharacteristic
+            )
+        )
     }
 
     override fun didConnect(bluetoothPeripheral: BluetoothPeripheral) {
-        onDeviceEvent?.let {
-            it(DeviceEvent.OnDeviceConnected(bluetoothPeripheral.uuid))
-        }
+        onDeviceEvent?.invoke(DeviceEvent.OnDeviceConnected(bluetoothPeripheral.uuid))
     }
 
     override fun didDisconnect(bluetoothPeripheral: BluetoothPeripheral) {
-        onDeviceEvent?.let {
-            it(DeviceEvent.OnDeviceDisconnected(bluetoothPeripheral.uuid))
-        }
+        onDeviceEvent?.invoke(DeviceEvent.OnDeviceDisconnected(bluetoothPeripheral.uuid))
     }
 
     override fun didDiscoverCharacteristics(bluetoothPeripheral: BluetoothPeripheral) {
-
+        onDeviceEvent?.invoke(
+            DeviceEvent.OnServicesDiscovered(bluetoothPeripheral.uuid, bluetoothPeripheral)
+        )
     }
 
     override fun didDiscoverServices(bluetoothPeripheral: BluetoothPeripheral) {
-
+        onDeviceEvent?.invoke(
+            DeviceEvent.OnServicesDiscovered(bluetoothPeripheral.uuid, bluetoothPeripheral)
+        )
     }
 
     override fun didReadDescriptor(
         bluetoothPeripheral: BluetoothPeripheral,
         bluetoothCharacteristicDescriptor: BluetoothCharacteristicDescriptor
     ) {
-
+        onDeviceEvent?.invoke(
+            DeviceEvent.OnDescriptorRead(
+                bluetoothPeripheral.uuid,
+                bluetoothCharacteristicDescriptor
+            )
+        )
     }
 
     override fun didRssiUpdate(bluetoothPeripheral: BluetoothPeripheral) {
+        onDeviceEvent?.invoke(DeviceEvent.OnRssiUpdated(bluetoothPeripheral.uuid))
     }
 
     override fun didUpdateMTU(bluetoothPeripheral: BluetoothPeripheral, status: Int) {
-
+        onDeviceEvent?.invoke(DeviceEvent.OnMtuUpdated(bluetoothPeripheral.uuid, status))
     }
 
     override fun didWriteCharacteristic(
@@ -63,7 +72,13 @@ class BleDelegate: BlueFalconDelegate {
         bluetoothCharacteristic: BluetoothCharacteristic,
         success: Boolean
     ) {
-
+        onDeviceEvent?.invoke(
+            DeviceEvent.OnWriteCharacteristicResult(
+                bluetoothPeripheral.uuid,
+                bluetoothCharacteristic,
+                success
+            )
+        )
     }
 
     override fun didWriteDescriptor(
@@ -73,15 +88,4 @@ class BleDelegate: BlueFalconDelegate {
 
     }
 
-    override fun didUpdateNotificationStateFor(
-        bluetoothPeripheral: BluetoothPeripheral,
-        bluetoothCharacteristic: BluetoothCharacteristic
-    ) {
-        // Example: Log or handle notification state changes
-        if (bluetoothCharacteristic.isNotifying) {
-            println("Notifications enabled for ${bluetoothCharacteristic.uuid} on ${bluetoothPeripheral.uuid}")
-        } else {
-            println("Notifications disabled for ${bluetoothCharacteristic.uuid} on ${bluetoothPeripheral.uuid}")
-        }
-    }
 }

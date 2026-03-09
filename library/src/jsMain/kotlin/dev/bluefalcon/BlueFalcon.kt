@@ -253,4 +253,19 @@ actual class BlueFalcon actual constructor(
         TODO("not implemented")
     }
 
+    @JsName("openL2capChannel")
+    actual fun openL2capChannel(bluetoothPeripheral: BluetoothPeripheral, psm: Int) {
+        throw UnsupportedOperationException("L2Cap is not supported on this platform")
+    }
+
+    @JsName("createBond")
+    actual fun createBond(bluetoothPeripheral: BluetoothPeripheral) {
+        throw UnsupportedOperationException("Bonding is not supported in Web Bluetooth API")
+    }
+
+    @JsName("removeBond")
+    actual fun removeBond(bluetoothPeripheral: BluetoothPeripheral) {
+        throw UnsupportedOperationException("Bonding is not supported in Web Bluetooth API")
+    }
+
 }

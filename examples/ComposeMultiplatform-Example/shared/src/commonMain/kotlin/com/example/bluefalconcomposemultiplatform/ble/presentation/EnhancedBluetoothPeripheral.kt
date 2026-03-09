@@ -4,5 +4,7 @@ import dev.bluefalcon.BluetoothPeripheral
 
 data class EnhancedBluetoothPeripheral(
     val connected: Boolean,
-    val peripheral: BluetoothPeripheral
+    val peripheral: BluetoothPeripheral,
+    val updateCount: Long = 0,
+    val mtuStatus: String? = null
 )
