@@ -17,6 +17,7 @@ import kotlinx.coroutines.launch
 import java.nio.ByteBuffer
 import java.nio.charset.Charset
 import java.util.*
+import java.util.concurrent.CopyOnWriteArrayList
 
 actual class BlueFalcon actual constructor(
     private val log: Logger?,
@@ -469,7 +470,7 @@ actual class BlueFalcon actual constructor(
 
     inner class GattClientCallback : BluetoothGattCallback() {
 
-        internal val gatts: MutableList<BluetoothGatt> = mutableListOf()
+        internal val gatts: MutableList<BluetoothGatt> = CopyOnWriteArrayList()
 
         private fun addGatt(gatt: BluetoothGatt) {
             if (gatts.firstOrNull { it.device.address == gatt.device.address } == null) {
@@ -519,10 +520,12 @@ actual class BlueFalcon actual constructor(
                         }
                     } else if (newState == STATE_DISCONNECTED) {
                         log?.info("Disconnected from ${bluetoothGatt.device.address}")
-                        removeGatt(bluetoothGatt)
+                        val wasTracked = gatts.remove(bluetoothGatt)
                         bluetoothGatt.close()
-                        delegates.forEach {
-                            it.didDisconnect(BluetoothPeripheralImpl(bluetoothGatt.device))
+                        if (wasTracked) {
+                            delegates.forEach {
+                                it.didDisconnect(BluetoothPeripheralImpl(bluetoothGatt.device))
+                            }
                         }
                     }
                 }
@@ -774,6 +777,10 @@ actual class BlueFalcon actual constructor(
     }
 
     actual fun destroy() {
+        if (isBondReceiverRegistered) {
+            context.unregisterReceiver(bondStateReceiver)
+            isBondReceiverRegistered = false
+        }
         BluetoothStateMonitor.unregister(context, this)
     }
 
